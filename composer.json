@@ -1,0 +1,16 @@
+{
+    "name": "metalrubber/cotizaciones",
+    "description": "Sistema independiente de cotizaciones para Metalrubber Ltda.",
+    "type": "project",
+    "require": {
+        "dompdf/dompdf": "^3.1"
+    },
+    "autoload": {
+        "files": ["app/bootstrap.php"]
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
+
