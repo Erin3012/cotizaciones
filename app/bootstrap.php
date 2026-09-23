@@ -52,6 +52,7 @@ function status_label(string $status): string { return ['received'=>'Solicitud r
 function status_class(string $status): string { return 'status-'.preg_replace('/[^a-z]/','',$status); }
 function money(float|int|string $amount): string { return '$'.number_format((float)$amount,0,',','.'); }
 function quantity(float|int|string $value): string { $formatted=number_format((float)$value,3,',','.'); return rtrim(rtrim($formatted,'0'),','); }
+function date_cl(?string $value): string { if(!$value) return ''; $date=DateTimeImmutable::createFromFormat('!Y-m-d',substr($value,0,10)); return $date?$date->format('d/m/Y'):$value; }
 function valid_rut(string $rut): bool {
     $clean=strtoupper(preg_replace('/[^0-9K]/','',$rut)); if (strlen($clean)<2) return false; $body=substr($clean,0,-1); $dv=substr($clean,-1); $sum=0; $mult=2;
     for ($i=strlen($body)-1;$i>=0;$i--) {$sum+=(int)$body[$i]*$mult;$mult=$mult===7?2:$mult+1;} $calc=11-($sum%11); $expected=$calc===11?'0':($calc===10?'K':(string)$calc); return $dv===$expected;
