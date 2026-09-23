@@ -15,6 +15,7 @@ if($page==='quote' && isset($_GET['id'])){
         $html=ob_get_clean();
         $needle='<a class="btn btn-primary" href="index.php?action=pdf&id='.$quotePageId.'">Descargar PDF</a>';
         $extra='<a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
+        $html=preg_replace_callback('/(<td>)(-?\d+\.\d{3})(<\/td>)/',function(array $match): string { return $match[1].e(quantity($match[2])).$match[3]; },$html)??$html;
         echo str_replace($needle,$needle.$extra,$html);
     });
 }

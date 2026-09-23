@@ -51,6 +51,7 @@ function logout_user(): void { $_SESSION=[]; if (ini_get('session.use_cookies'))
 function status_label(string $status): string { return ['received'=>'Solicitud recibida','review'=>'En revisión','preparation'=>'En preparación','sent'=>'Enviada','accepted'=>'Aceptada','rejected'=>'Rechazada','expired'=>'Vencida'][$status]??$status; }
 function status_class(string $status): string { return 'status-'.preg_replace('/[^a-z]/','',$status); }
 function money(float|int|string $amount): string { return '$'.number_format((float)$amount,0,',','.'); }
+function quantity(float|int|string $value): string { $formatted=number_format((float)$value,3,',','.'); return rtrim(rtrim($formatted,'0'),','); }
 function valid_rut(string $rut): bool {
     $clean=strtoupper(preg_replace('/[^0-9K]/','',$rut)); if (strlen($clean)<2) return false; $body=substr($clean,0,-1); $dv=substr($clean,-1); $sum=0; $mult=2;
     for ($i=strlen($body)-1;$i>=0;$i--) {$sum+=(int)$body[$i]*$mult;$mult=$mult===7?2:$mult+1;} $calc=11-($sum%11); $expected=$calc===11?'0':($calc===10?'K':(string)$calc); return $dv===$expected;
