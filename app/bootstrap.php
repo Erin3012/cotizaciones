@@ -45,7 +45,7 @@ function current_user(): ?array {
     static $user; if ($user!==null) return $user; if (empty($_SESSION['user_id'])) return null;
     $stmt=db()->prepare('SELECT id,name,email,role FROM users WHERE id=? AND active=1'); $stmt->execute([(int)$_SESSION['user_id']]); return $user=$stmt->fetch()?:null;
 }
-function require_login(): array { $user=current_user(); if (!$user) redirect('login.php?return='.rawurlencode($_SERVER['REQUEST_URI']??'index.php?page=dashboard')); return $user; }
+function require_login(): array { $user=current_user(); if (!$user) redirect('login.php?return='.rawurlencode($_SERVER['REQUEST_URI']??'index.php?page=quotes')); return $user; }
 function login_user(array $user): void { session_regenerate_id(true); $_SESSION['user_id']=(int)$user['id']; }
 function logout_user(): void { $_SESSION=[]; if (ini_get('session.use_cookies')) { $p=session_get_cookie_params(); setcookie(session_name(),' ',time()-42000,$p['path'],$p['domain']??'',(bool)$p['secure'],(bool)$p['httponly']); } session_destroy(); }
 function status_label(string $status): string { return ['received'=>'Solicitud recibida','review'=>'En revisión','preparation'=>'En preparación','sent'=>'Enviada','accepted'=>'Aceptada','rejected'=>'Rechazada','expired'=>'Vencida'][$status]??$status; }

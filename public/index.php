@@ -7,6 +7,7 @@ require_once dirname(__DIR__).'/app/quote_actions.php';
 $page=(string)($_GET['page']??'public');
 $action=(string)($_POST['action']??$_GET['action']??'');
 $errors=[];
+if($page==='dashboard') redirect('index.php?page=quotes');
 
 if(isset($_GET['page'])){
     $isQuotePage=$page==='quote' && isset($_GET['id']);
@@ -19,6 +20,7 @@ if(isset($_GET['page'])){
         $html=preg_replace_callback('/(<td>)(-?\d+\.\d{3})(<\/td>)/',function(array $match): string { return $match[1].e(quantity($match[2])).$match[3]; },$html)??$html;
         $html=preg_replace_callback('/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/',function(array $match): string { return $match[3].'/'.$match[2].'/'.$match[1]; },$html)??$html;
         $html=preg_replace('/<a class="[^"]*" href="index\.php\?page=requests">.*?<\/a>/s','',$html)??$html;
+        $html=preg_replace('/<a class="[^"]*" href="index\.php\?page=dashboard">Panel principal<\/a>/s','',$html)??$html;
         $html=preg_replace('/<div class="field"><label>Estado<\/label>.*?<\/div>/s','',$html)??$html;
         $html=preg_replace('/<section class="panel no-print">.*?Actualizar estado.*?<\/section>/s','',$html)??$html;
         $html=preg_replace('/<div class="card metric[^>]*>.*?(?:Solicitudes nuevas|Cotizaciones pendientes|Cotizaciones enviadas|Cotizaciones aceptadas).*?<\/div>/s','',$html)??$html;
