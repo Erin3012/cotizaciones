@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && $action==='public_submit') {
     } catch(Throwable $e) { if(isset($pdo)&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack(); $errors[]=$e->getMessage(); }
 }
 if(isset($_GET['sent'])) { public_head(); echo '<div class="login-wrap" style="background:var(--paper)"><div class="login-card"><h1>Solicitud<br><em style="color:#b09d00;font-style:normal">recibida</em></h1><div class="alert success">Registramos la solicitud <strong>'.e((string)$_GET['sent']).'</strong>.</div><a class="btn btn-dark" href="index.php">Enviar otra solicitud</a></div></div></body></html>'; exit; }
-if($page==='public' && $_SERVER['REQUEST_METHOD']!=='POST') {
+if($page==='public' && $_SERVER['REQUEST_METHOD']!=='POST' && $action==='') {
     public_head(); echo '<main class="hero-public"><section class="public-copy"><p class="eyebrow" style="color:var(--yellow)">Metalrubber Ltda. · Hualpén, Chile</p><h1>Cuéntanos<br><em>qué necesitas.</em></h1><p>Fabricamos soluciones metalmecánicas y productos de caucho a la medida. Completa el formulario y nuestro equipo revisará tu requerimiento.</p><div class="public-contact">41 317 7199 · WhatsApp +56 9 9312 8000<br>metalrubber@gmail.com · metalrubber.cl</div><div class="actions"><a class="btn btn-primary" href="login.php">Acceso administrativo</a></div></section><section class="public-form"><p class="eyebrow">Solicitud de cotización</p><h2>Datos del requerimiento</h2>';
     foreach($errors as $err) echo '<div class="alert error">'.e($err).'</div>';
     echo '<form method="post" enctype="multipart/form-data"><input type="hidden" name="action" value="public_submit">'.csrf_field().'<div class="form-grid">';
