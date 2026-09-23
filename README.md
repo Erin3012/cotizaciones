@@ -21,8 +21,8 @@ Sistema independiente de solicitudes y cotizaciones para Metalrubber Ltda.
 
 ## Flujo
 
-- El formulario público crea clientes, solicitudes y adjuntos.
-- El panel requiere autenticación y permite revisar solicitudes, administrar clientes, crear cotizaciones y descargar PDF.
+- El panel administrativo requiere autenticación y permite crear directamente cotizaciones para los clientes.
+- Cada cotización guarda el cliente, la solicitud interna, sus ítems, condiciones y PDF consultable.
 - Las cotizaciones usan IVA fijo de 19%, folio `COT-AAAA-####` y fecha de vencimiento obligatoria.
 - No se envían correos automáticamente en esta versión.
 
@@ -34,4 +34,3 @@ Sistema independiente de solicitudes y cotizaciones para Metalrubber Ltda.
 - `public/assets/style.css`: sistema visual responsive.
 - `public/uploads/`: adjuntos protegidos.
 - `tests/`: pruebas de cálculo y validación.
-

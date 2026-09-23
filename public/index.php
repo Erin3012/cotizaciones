@@ -11,13 +11,18 @@ $errors=[];
 function shell_start(string $title,string $heading=''): void {
     $user=current_user(); $active=(string)($_GET['page']??'dashboard');
     echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.e($title).' · Cotizaciones Metalrubber</title><link rel="stylesheet" href="assets/style.css"></head><body><div class="shell"><aside class="side"><a class="brand" href="index.php?page=dashboard"><span class="brand-mark">M</span><span><strong>METALRUBBER</strong><small>Cotizaciones</small></span></a><nav class="nav">';
-    foreach(['dashboard'=>'Panel principal','requests'=>'Solicitudes','quotes'=>'Cotizaciones','clients'=>'Clientes'] as $k=>$label) echo '<a class="'.($active===$k?'active':'').'" href="index.php?page='.$k.'">'.e($label).'</a>';
+    foreach(['dashboard'=>'Panel principal','quote_new'=>'Nueva cotización','requests'=>'Solicitudes','quotes'=>'Cotizaciones','clients'=>'Clientes'] as $k=>$label) echo '<a class="'.($active===$k?'active':'').'" href="'.($k==='quote_new'?'quote_new.php':'index.php?page='.$k).'">'.e($label).'</a>';
     echo '</nav><div class="side-footer">Hualpén, Chile<br>41 317 7199<br>metalrubber@gmail.com</div></aside><div class="main"><header class="top"><button class="menu" onclick="document.querySelector(\'.shell\').classList.toggle(\'menu-open\')">☰</button><h1>'.e($heading?:$title).'</h1><div class="user">'.e($user['name']??'Administrador').' · <a href="logout.php">Salir</a></div></header><main class="content">';
     foreach(consume_flash() as $f) echo '<div class="alert '.e($f['type']).'">'.e($f['message']).'</div>';
 }
 function shell_end(): void { echo '</main></div></div></body></html>'; }
 function status_select(string $name,string $value): void { echo '<select class="select" name="'.e($name).'">'; foreach(request_statuses() as $s) echo '<option value="'.e($s).'" '.($s===$value?'selected':'').'>'.e(status_label($s)).'</option>'; echo '</select>'; }
 function public_head(): void { echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Solicitar cotización · Metalrubber</title><link rel="stylesheet" href="assets/style.css"></head><body>'; }
+
+if($page==='public'){
+    if(current_user()) redirect('index.php?page=dashboard');
+    redirect('login.php');
+}
 
 if ($_SERVER['REQUEST_METHOD']==='POST' && $action==='public_submit') {
     try {
