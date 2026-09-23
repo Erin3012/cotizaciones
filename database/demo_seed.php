@@ -9,13 +9,17 @@ $pdo=db();
 $existing=(int)$pdo->query("SELECT COUNT(*) FROM quotes WHERE quote_number LIKE 'DEMO-%'")->fetchColumn();
 if($existing>0){exit("Ya existen {$existing} cotizaciones DEMO. No se agregaron duplicados.\n");}
 $admin=(int)($pdo->query("SELECT id FROM users WHERE active=1 ORDER BY id LIMIT 1")->fetchColumn()?:0);
+$companyNames=['Ingenieria FerroSur SpA','Mantenciones Industriales del BioBio Ltda.','Transportes Carga Andina SpA','Servicios Metalurgicos del Pacifico Ltda.','Ferrocarriles del Valle SpA','Maestranza Los Aromos Ltda.','Operaciones Portuarias del Sur SpA','Cauchos Tecnicos del Pacifico Ltda.','Estructuras y Montajes Coronel SpA','Logistica Industrial Arauco Ltda.','Mecanizados Gran Concepcion SpA','Servicios Mineros Cordillera Sur Ltda.','Talleres Industriales Hualpen SpA','Insumos Ferroviarios del Sur Ltda.','Construcciones Metalicas BioBio SpA','Mantencion Planta Costa Sur Ltda.','Proyectos Industriales Andalién SpA','Suministros Tecnicos del Biobio Ltda.','Maestranza y Montajes del Itata SpA','Soluciones Industriales Viento Sur Ltda.'];
+$rutBodies=[76900101,76900113,76900127,76900139,76900145,76900158,76900162,76900176,76900180,76900194,76900208,76900211,76900225,76900237,76900241,76900256,76900263,76900279,76900284,76900298];
+$contacts=['Mauricio Valdes','Carolina Saavedra','Rodrigo Paredes','Daniela Munoz','Felipe Contreras','Paola Riquelme','Andres Sepulveda','Marcela Aravena','Cristian Neira','Veronica Salgado','Jorge Cisternas','Natalia Herrera','Patricio Molina','Claudia Bustos','Sergio Figueroa','Alejandra Parra','Gonzalo Carrasco','Lorena Fuentes','Hector Sanhueza','Tamara Espinoza'];
+$addresses=['Parque Industrial Escuadron, Coronel','Av. Gran Bretana, Talcahuano','Camino a Nonguen, Concepcion','Sector El Arenal, Hualpen','Av. Cristobal Colon, Talcahuano','Parque Industrial Michaihue, San Pedro de la Paz','Ruta Interportuaria, Talcahuano','Av. Jorge Alessandri, Concepcion','Camino a Lota, Coronel','Sector Industrial El Manzano, Hualpen'];
 $companies=[];
 for($i=1;$i<=20;$i++){
-    $rutBody=99000000+$i;
+    $rutBody=$rutBodies[$i-1];
     $body=(string)$rutBody;$sum=0;$mult=2;
     for($j=strlen($body)-1;$j>=0;$j--){$sum+=(int)$body[$j]*$mult;$mult=$mult===7?2:$mult+1;}
     $dv=11-($sum%11);$dv=$dv===11?'0':($dv===10?'K':(string)$dv);
-    $companies[]=['name'=>'Cliente DEMO '.str_pad((string)$i,2,'0',STR_PAD_LEFT),'rut'=>number_format($rutBody,0,',','.').'-'.$dv,'email'=>'cliente.demo'.$i.'@example.test','phone'=>'+56 9 9000 '.str_pad((string)(1000+$i),4,'0',STR_PAD_LEFT),'address'=>'Direccion DEMO '.$i.', Hualpen','contact_name'=>'Contacto DEMO '.$i];
+    $companies[]=['name'=>$companyNames[$i-1].' (DEMO)','rut'=>number_format($rutBody,0,',','.').'-'.$dv,'email'=>'contacto'.$i.'@demo-metalrubber.example','phone'=>'+56 41 317 '.str_pad((string)(7100+$i),4,'0',STR_PAD_LEFT),'address'=>$addresses[($i-1)%count($addresses)],'contact_name'=>$contacts[$i-1]];
 }
 $templates=[
     ['service'=>'Reparacion de boguies ferroviarios','description'=>'Reparacion, ajuste y revision de boguies para segunda quincena de agosto.','material'=>'Acero estructural','unit'=>'servicio','min'=>450000,'max'=>1800000],
