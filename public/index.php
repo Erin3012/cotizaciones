@@ -8,6 +8,17 @@ $page=(string)($_GET['page']??'public');
 $action=(string)($_POST['action']??$_GET['action']??'');
 $errors=[];
 
+if($page==='quote' && isset($_GET['id'])){
+    $quotePageId=(int)$_GET['id'];
+    ob_start();
+    register_shutdown_function(function() use ($quotePageId): void {
+        $html=ob_get_clean();
+        $needle='<a class="btn btn-primary" href="index.php?action=pdf&id='.$quotePageId.'">Descargar PDF</a>';
+        $extra='<a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
+        echo str_replace($needle,$needle.$extra,$html);
+    });
+}
+
 function shell_start(string $title,string $heading=''): void {
     $user=current_user(); $active=(string)($_GET['page']??'dashboard');
     echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.e($title).' · Cotizaciones Metalrubber</title><link rel="stylesheet" href="assets/style.css"></head><body><div class="shell"><aside class="side"><a class="brand" href="index.php?page=dashboard"><span class="brand-mark">M</span><span><strong>METALRUBBER</strong><small>Cotizaciones</small></span></a><nav class="nav">';
