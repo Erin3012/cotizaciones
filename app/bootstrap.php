@@ -5,6 +5,9 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_cookie_params(['httponly'=>true,'secure'=>(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),'samesite'=>'Lax']);
     session_start();
 }
+if (function_exists('load_env')) {
+    return;
+}
 function load_env(): void {
     static $loaded=false; if ($loaded) return; $loaded=true; $file=dirname(__DIR__).'/.env'; if (!is_readable($file)) return;
     foreach (file($file, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES) as $line) {
@@ -21,7 +24,7 @@ function db(): PDO {
     $dsn='mysql:host='.env_value('DB_HOST','127.0.0.1').';port='.env_value('DB_PORT','3306').';dbname='.env_value('DB_DATABASE','qlccl_cotizaciones').';charset=utf8mb4';
     return $pdo=new PDO($dsn,env_value('DB_USERNAME','root'),env_value('DB_PASSWORD'),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
 }
-function e(?string $value): string { return htmlspecialchars($value??'',ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'); }
+function e(mixed $value): string { if (is_array($value)) $value=implode(', ',array_map('strval',$value)); return htmlspecialchars((string)($value??''),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'); }
 function redirect(string $url): never { header('Location: '.$url); exit; }
 function csrf_token(): string { return $_SESSION['csrf_token']??=bin2hex(random_bytes(32)); }
 function csrf_field(): string { return '<input type="hidden" name="csrf_token" value="'.e(csrf_token()).'">'; }
@@ -56,4 +59,3 @@ function upload_files(int $requestId): array {
     foreach($_FILES['attachments']['name'] as $i=>$original) { if ($_FILES['attachments']['error'][$i]!==UPLOAD_ERR_OK) continue; if ((int)$_FILES['attachments']['size'][$i]>$max) throw new RuntimeException('Cada archivo debe pesar como máximo 10 MB.'); $ext=strtolower(pathinfo($original,PATHINFO_EXTENSION)); if (!in_array($ext,$allowed,true)) throw new RuntimeException('Tipo de archivo no permitido: '.$ext); $tmp=$_FILES['attachments']['tmp_name'][$i]; $mime=$finfo->file($tmp)?:'application/octet-stream'; $stored=bin2hex(random_bytes(16)).'.'.$ext; $relative=$requestId.'/'.$stored; if (!move_uploaded_file($tmp,$dir.'/'.$stored)) throw new RuntimeException('No se pudo guardar un archivo adjunto.'); $s=db()->prepare('INSERT INTO request_attachments (request_id,original_name,stored_name,mime_type,file_size,relative_path) VALUES (?,?,?,?,?,?)'); $s->execute([$requestId,substr($original,0,255),$stored,$mime,(int)$_FILES['attachments']['size'][$i],$relative]); $saved[]=$relative; }
     return $saved;
 }
-
