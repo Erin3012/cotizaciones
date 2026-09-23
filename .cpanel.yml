@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/qlccl/qlccl/cotizaciones/
+    - export DEPLOYPATH=/home/qlccl/cotizaciones/
     - /bin/cp -R app $DEPLOYPATH
     - /bin/cp -R vendor $DEPLOYPATH
     - /bin/cp -R database $DEPLOYPATH
