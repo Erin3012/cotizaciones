@@ -60,6 +60,8 @@ if($page==='setup') {
 require_login();
 
 if($action==='save_quote'){handle_save_quote_form();}
+if($action==='update_quote'){handle_update_quote_form();}
+if($action==='delete_quote'){handle_delete_quote();}
 
 if($action==='request_status') { verify_csrf(); $id=(int)$_POST['request_id']; $new=(string)$_POST['status']; if(!in_array($new,request_statuses(),true)) exit('Estado inválido.'); $s=db()->prepare('SELECT status FROM quote_requests WHERE id=?');$s->execute([$id]);$old=$s->fetchColumn();db()->prepare('UPDATE quote_requests SET status=? WHERE id=?')->execute([$new,$id]);add_history('request',$id,(string)$old,$new,trim((string)($_POST['comment']??'')));flash('success','Estado actualizado.');redirect('index.php?page=request&id='.$id); }
 if($action==='quote_status') { verify_csrf(); $id=(int)$_POST['quote_id'];$new=(string)$_POST['status'];if(!in_array($new,request_statuses(),true))exit('Estado inválido.');$s=db()->prepare('SELECT status,request_id FROM quotes WHERE id=?');$s->execute([$id]);$q=$s->fetch();if(!$q)exit('Cotización no encontrada.');db()->prepare('UPDATE quotes SET status=? WHERE id=?')->execute([$new,$id]);add_history('quote',$id,$q['status'],$new,trim((string)($_POST['comment']??'')));db()->prepare('UPDATE quote_requests SET status=? WHERE id=?')->execute([$new,$q['request_id']]);flash('success','Estado actualizado.');redirect('index.php?page=quote&id='.$id); }
