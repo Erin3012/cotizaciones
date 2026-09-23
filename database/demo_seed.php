@@ -7,7 +7,15 @@ require_once dirname(__DIR__).'/app/bootstrap.php';
 
 $pdo=db();
 $existing=(int)$pdo->query("SELECT COUNT(*) FROM quotes WHERE quote_number LIKE 'DEMO-%'")->fetchColumn();
-if($existing>0){exit("Ya existen {$existing} cotizaciones DEMO. No se agregaron duplicados.\n");}
+$replace=in_array('--replace',$argv,true);
+if($existing>0&&!$replace){exit("Ya existen {$existing} cotizaciones DEMO. Usa --replace para reemplazarlas.\n");}
+if($existing>0&&$replace){
+    $pdo->beginTransaction();
+    $pdo->exec("DELETE FROM quotes WHERE quote_number LIKE 'DEMO-%'");
+    $pdo->exec("DELETE FROM quote_requests WHERE request_number LIKE 'DEMOSOL-%'");
+    $pdo->exec("DELETE FROM clients WHERE email LIKE '%@example.test' OR email LIKE '%@demo-metalrubber.example'");
+    $pdo->commit();
+}
 $admin=(int)($pdo->query("SELECT id FROM users WHERE active=1 ORDER BY id LIMIT 1")->fetchColumn()?:0);
 $companyNames=['Ingenieria FerroSur SpA','Mantenciones Industriales del BioBio Ltda.','Transportes Carga Andina SpA','Servicios Metalurgicos del Pacifico Ltda.','Ferrocarriles del Valle SpA','Maestranza Los Aromos Ltda.','Operaciones Portuarias del Sur SpA','Cauchos Tecnicos del Pacifico Ltda.','Estructuras y Montajes Coronel SpA','Logistica Industrial Arauco Ltda.','Mecanizados Gran Concepcion SpA','Servicios Mineros Cordillera Sur Ltda.','Talleres Industriales Hualpen SpA','Insumos Ferroviarios del Sur Ltda.','Construcciones Metalicas BioBio SpA','Mantencion Planta Costa Sur Ltda.','Proyectos Industriales Andalién SpA','Suministros Tecnicos del Biobio Ltda.','Maestranza y Montajes del Itata SpA','Soluciones Industriales Viento Sur Ltda.'];
 $rutBodies=[76900101,76900113,76900127,76900139,76900145,76900158,76900162,76900176,76900180,76900194,76900208,76900211,76900225,76900237,76900241,76900256,76900263,76900279,76900284,76900298];
