@@ -13,8 +13,9 @@ function handle_save_quote_form(): never
             if(!$request) exit('Solicitud no encontrada.');
         } else {
             $clientName=trim((string)($_POST['client_name']??''));$rut=trim((string)($_POST['client_rut']??''));$email=trim((string)($_POST['client_email']??''));$phone=trim((string)($_POST['client_phone']??''));$address=trim((string)($_POST['client_address']??''));$contact=trim((string)($_POST['attention_name']??''));
-            if($clientName===''||$rut===''||$email===''||$phone===''||$address===''||$contact==='') exit('Completa todos los datos obligatorios del cliente.');
-            if(!valid_rut($rut)||!filter_var($email,FILTER_VALIDATE_EMAIL)) exit('Revisa el RUT y el correo del cliente.');
+            if($clientName===''||$rut===''||$address===''||$contact==='') exit('Completa nombre, RUT, dirección y atención del cliente.');
+            if(!valid_rut($rut)) exit('El RUT del cliente no es válido. Usa el formato 12.345.678-9.');
+            if($email!==''&&!filter_var($email,FILTER_VALIDATE_EMAIL)) exit('El correo del cliente no es válido.');
             $s=$pdo->prepare('SELECT id FROM clients WHERE rut=?');$s->execute([$rut]);$clientId=$s->fetchColumn();
             if($clientId){$s=$pdo->prepare('UPDATE clients SET name=?,email=?,phone=?,address=?,contact_name=? WHERE id=?');$s->execute([$clientName,$email,$phone,$address,$contact,$clientId]);}
             else{$s=$pdo->prepare('INSERT INTO clients (name,rut,email,phone,address,contact_name) VALUES (?,?,?,?,?,?)');$s->execute([$clientName,$rut,$email,$phone,$address,$contact]);$clientId=(int)$pdo->lastInsertId();}
@@ -34,4 +35,3 @@ function handle_save_quote_form(): never
         add_history('quote',$quoteId,null,'preparation','Cotización creada.');$pdo->commit();flash('success','Cotización creada correctamente.');redirect('index.php?page=quote&id='.$quoteId);
     } catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();exit('No se pudo guardar la cotización: '.e($e->getMessage()));}
 }
-
