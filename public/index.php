@@ -16,7 +16,7 @@ if(isset($_GET['page'])){
     register_shutdown_function(function() use ($quotePageId,$isQuotePage): void {
         $html=ob_get_clean();
         $needle='<a class="btn btn-primary" href="index.php?action=pdf&id='.$quotePageId.'">Descargar PDF</a>';
-        $extra='<a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
+        $extra='<a class="btn btn-outline" href="quote_print.php?id='.$quotePageId.'">Imprimir / Guardar PDF</a><a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
         $html=preg_replace_callback('/(<td>)(-?\d+\.\d{3})(<\/td>)/',function(array $match): string { return $match[1].e(quantity($match[2])).$match[3]; },$html)??$html;
         $html=preg_replace_callback('/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/',function(array $match): string { return $match[3].'/'.$match[2].'/'.$match[1]; },$html)??$html;
         $html=preg_replace('/<a class="[^"]*" href="index\.php\?page=requests">.*?<\/a>/s','',$html)??$html;
