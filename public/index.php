@@ -19,7 +19,7 @@ function shell_end(): void { echo '</main></div></div></body></html>'; }
 function status_select(string $name,string $value): void { echo '<select class="select" name="'.e($name).'">'; foreach(request_statuses() as $s) echo '<option value="'.e($s).'" '.($s===$value?'selected':'').'>'.e(status_label($s)).'</option>'; echo '</select>'; }
 function public_head(): void { echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Solicitar cotización · Metalrubber</title><link rel="stylesheet" href="assets/style.css"></head><body>'; }
 
-if($page==='public' && $_SERVER['REQUEST_METHOD']!=='POST'){
+if($page==='public' && $_SERVER['REQUEST_METHOD']!=='POST' && $action===''){
     if(current_user()) redirect('index.php?page=dashboard');
     redirect('login.php');
 }
