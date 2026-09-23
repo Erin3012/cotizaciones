@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/app/bootstrap.php';
 require_once dirname(__DIR__).'/app/quote_actions.php';
 require_login();
+?><script src="assets/client-lookup.js" defer></script><?php
 $next=next_number('COT','quotes','quote_number');
 ?><!doctype html>
 <html lang="es">
