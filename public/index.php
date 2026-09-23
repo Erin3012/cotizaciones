@@ -18,6 +18,11 @@ if(isset($_GET['page'])){
         $extra='<a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
         $html=preg_replace_callback('/(<td>)(-?\d+\.\d{3})(<\/td>)/',function(array $match): string { return $match[1].e(quantity($match[2])).$match[3]; },$html)??$html;
         $html=preg_replace_callback('/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/',function(array $match): string { return $match[3].'/'.$match[2].'/'.$match[1]; },$html)??$html;
+        $html=preg_replace('/<a class="[^"]*" href="index\.php\?page=requests">.*?<\/a>/s','',$html)??$html;
+        $html=preg_replace('/<section class="panel no-print">.*?Actualizar estado.*?<\/section>/s','',$html)??$html;
+        $html=preg_replace('/<div class="card metric[^>]*>.*?(?:Solicitudes nuevas|Cotizaciones pendientes|Cotizaciones enviadas|Cotizaciones aceptadas).*?<\/div>/s','',$html)??$html;
+        $html=str_replace('<th>Estado</th>','',$html);
+        $html=preg_replace('/<td><span class="status [^"]+">.*?<\/span><\/td>/s','',$html)??$html;
         echo $isQuotePage?str_replace($needle,$needle.$extra,$html):$html;
     });
 }
@@ -37,6 +42,8 @@ if($page==='public' && $_SERVER['REQUEST_METHOD']!=='POST' && $action===''){
     if(current_user()) redirect('index.php?page=dashboard');
     redirect('login.php');
 }
+
+if($action==='public_submit') redirect('login.php');
 
 if ($_SERVER['REQUEST_METHOD']==='POST' && $action==='public_submit') {
     try {
@@ -71,11 +78,13 @@ if($page==='setup') {
     if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();$name=trim((string)$_POST['name']);$email=trim((string)$_POST['email']);$password=(string)$_POST['password'];if($name===''||!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($password)<10)$errors[]='Usa datos válidos y una contraseña de al menos 10 caracteres.';else{$s=db()->prepare('INSERT INTO users (name,email,password_hash) VALUES (?,?,?)');$s->execute([$name,$email,password_hash($password,PASSWORD_DEFAULT)]);redirect('login.php');}}
     echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Configuración inicial</title><link rel="stylesheet" href="assets/style.css"></head><body><main class="login-wrap"><form class="login-card" method="post"><h1>Primera<br><em style="color:#b09d00;font-style:normal">configuración</em></h1>';foreach($errors as $err)echo '<div class="alert error">'.e($err).'</div>';echo '<input type="hidden" name="action" value="setup">'.csrf_field().'<div class="field"><label>Nombre</label><input class="input" name="name" required></div><div class="field"><label>Correo</label><input class="input" type="email" name="email" required></div><div class="field"><label>Contraseña</label><input class="input" type="password" name="password" minlength="10" required></div><div class="actions"><button class="btn btn-primary">Crear administrador</button></div></form></main></body></html>';exit;
 }
+if($page==='requests'||$page==='request') redirect('index.php?page=quotes');
 require_login();
 
 if($action==='save_quote'){handle_save_quote_form();}
 if($action==='update_quote'){handle_update_quote_form();}
 if($action==='delete_quote'){handle_delete_quote();}
+if($action==='request_status'||$action==='quote_status') redirect('index.php?page=quotes');
 
 if($action==='request_status') { verify_csrf(); $id=(int)$_POST['request_id']; $new=(string)$_POST['status']; if(!in_array($new,request_statuses(),true)) exit('Estado inválido.'); $s=db()->prepare('SELECT status FROM quote_requests WHERE id=?');$s->execute([$id]);$old=$s->fetchColumn();db()->prepare('UPDATE quote_requests SET status=? WHERE id=?')->execute([$new,$id]);add_history('request',$id,(string)$old,$new,trim((string)($_POST['comment']??'')));flash('success','Estado actualizado.');redirect('index.php?page=request&id='.$id); }
 if($action==='quote_status') { verify_csrf(); $id=(int)$_POST['quote_id'];$new=(string)$_POST['status'];if(!in_array($new,request_statuses(),true))exit('Estado inválido.');$s=db()->prepare('SELECT status,request_id FROM quotes WHERE id=?');$s->execute([$id]);$q=$s->fetch();if(!$q)exit('Cotización no encontrada.');db()->prepare('UPDATE quotes SET status=? WHERE id=?')->execute([$new,$id]);add_history('quote',$id,$q['status'],$new,trim((string)($_POST['comment']??'')));db()->prepare('UPDATE quote_requests SET status=? WHERE id=?')->execute([$new,$q['request_id']]);flash('success','Estado actualizado.');redirect('index.php?page=quote&id='.$id); }
