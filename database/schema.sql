@@ -65,6 +65,12 @@ CREATE TABLE IF NOT EXISTS quotes (
   request_id BIGINT UNSIGNED NOT NULL,
   issue_date DATE NOT NULL,
   expiry_date DATE NOT NULL,
+  attention_name VARCHAR(150) NULL,
+  client_phone VARCHAR(60) NULL,
+  client_email VARCHAR(190) NULL,
+  delivery_location VARCHAR(255) NULL,
+  delivery_term VARCHAR(180) NULL,
+  payment_method VARCHAR(180) NULL,
   status ENUM('received','review','preparation','sent','accepted','rejected','expired') NOT NULL DEFAULT 'preparation',
   tax_rate DECIMAL(5,2) NOT NULL DEFAULT 19.00,
   subtotal DECIMAL(14,2) NOT NULL DEFAULT 0,
@@ -119,4 +125,3 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_audit_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
