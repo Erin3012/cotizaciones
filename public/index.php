@@ -8,16 +8,17 @@ $page=(string)($_GET['page']??'public');
 $action=(string)($_POST['action']??$_GET['action']??'');
 $errors=[];
 
-if($page==='quote' && isset($_GET['id'])){
-    $quotePageId=(int)$_GET['id'];
+if(isset($_GET['page'])){
+    $isQuotePage=$page==='quote' && isset($_GET['id']);
+    $quotePageId=(int)($_GET['id']??0);
     ob_start();
-    register_shutdown_function(function() use ($quotePageId): void {
+    register_shutdown_function(function() use ($quotePageId,$isQuotePage): void {
         $html=ob_get_clean();
         $needle='<a class="btn btn-primary" href="index.php?action=pdf&id='.$quotePageId.'">Descargar PDF</a>';
         $extra='<a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
         $html=preg_replace_callback('/(<td>)(-?\d+\.\d{3})(<\/td>)/',function(array $match): string { return $match[1].e(quantity($match[2])).$match[3]; },$html)??$html;
         $html=preg_replace_callback('/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/',function(array $match): string { return $match[3].'/'.$match[2].'/'.$match[1]; },$html)??$html;
-        echo str_replace($needle,$needle.$extra,$html);
+        echo $isQuotePage?str_replace($needle,$needle.$extra,$html):$html;
     });
 }
 
