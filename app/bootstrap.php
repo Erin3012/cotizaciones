@@ -14,11 +14,13 @@ function load_env(): void {
         $line=trim($line); if ($line===''||str_starts_with($line,'#')||!str_contains($line,'=')) continue;
         [$key,$value]=explode('=',$line,2); $value=trim($value);
         if (strlen($value)>1 && (($value[0]==='"'&&substr($value,-1)==='"')||($value[0]==="'"&&substr($value,-1)==="'"))) $value=substr($value,1,-1);
-        $_ENV[trim($key)]=$value;
+        $key=trim($key);
+        $_ENV[$key]=$value;
+        putenv($key.'='.$value);
     }
 }
 load_env();
-function env_value(string $key,string $default=''): string { $value=$_ENV[$key]??getenv($key); return ($value!==false&&$value!==null&&$value!=='')?(string)$value:$default; }
+function env_value(string $key,string $default=''): string { $value=getenv($key); if ($value===false||$value==='') $value=$_ENV[$key]??null; return ($value!==false&&$value!==null&&$value!=='')?(string)$value:$default; }
 function db(): PDO {
     static $pdo; if ($pdo instanceof PDO) return $pdo;
     $dsn='mysql:host='.env_value('DB_HOST','127.0.0.1').';port='.env_value('DB_PORT','3306').';dbname='.env_value('DB_DATABASE','qlccl_cotizaciones').';charset=utf8mb4';
