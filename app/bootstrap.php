@@ -5,16 +5,18 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_cookie_params(['httponly'=>true,'secure'=>(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),'samesite'=>'Lax']);
     session_start();
 }
-if (function_exists('load_env')) {
+if (defined('COTIZACIONES_BOOTSTRAP_LOADED')) {
     return;
 }
+define('COTIZACIONES_BOOTSTRAP_LOADED', true);
 function load_env(): void {
-    static $loaded=false; if ($loaded) return; $loaded=true; $file=dirname(__DIR__).'/.env'; if (!is_readable($file)) return;
-    foreach (file($file, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES) as $line) {
-        $line=trim($line); if ($line===''||str_starts_with($line,'#')||!str_contains($line,'=')) continue;
-        [$key,$value]=explode('=',$line,2); $value=trim($value);
-        if (strlen($value)>1 && (($value[0]==='"'&&substr($value,-1)==='"')||($value[0]==="'"&&substr($value,-1)==="'"))) $value=substr($value,1,-1);
-        $key=trim($key);
+    $file=dirname(__DIR__).'/.env';
+    if (!is_readable($file)) return;
+    $values=parse_ini_file($file,false,INI_SCANNER_RAW);
+    if (!is_array($values)) return;
+    foreach ($values as $key=>$value) {
+        if (!is_string($key) || is_array($value)) continue;
+        $value=(string)$value;
         $_ENV[$key]=$value;
         putenv($key.'='.$value);
     }
