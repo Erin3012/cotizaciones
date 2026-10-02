@@ -28,6 +28,8 @@ Sistema independiente de solicitudes y cotizaciones para Metalrubber Ltda.
 
 ## Estructura
 
+Para actualizar empresas con múltiples contactos, seguir [database/CONTACTOS.md](database/CONTACTOS.md). La actualización requiere importar la migración sobre una base previamente respaldada. Las cotizaciones conservan una copia del destinatario y los contactos se administran en la ficha de clientes.
+
 - `app/`: configuración, seguridad, autenticación, consultas y PDF.
 - `database/schema.sql`: esquema exclusivo de esta aplicación.
 - `public/index.php`: entrada pública y administrativa.

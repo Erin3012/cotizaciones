@@ -11,6 +11,7 @@ $next=next_number('COT','quotes','quote_number');
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nueva cotización · Metalrubber</title><link rel="stylesheet" href="assets/style.css">
 <script src="assets/quote-expiry.js" defer></script>
+<script src="assets/quote-contacts.js" defer></script>
 </head>
 <body>
 <div class="shell">
