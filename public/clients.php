@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/app/bootstrap.php';
 require_once dirname(__DIR__).'/app/contacts.php';
 require_once dirname(__DIR__).'/app/clients.php';
+require_once dirname(__DIR__).'/app/deletions.php';
 require_login();
 $id=(int)($_GET['id']??$_POST['client_id']??0);$error='';
 $new=isset($_GET['new'])||($_POST['action']??'')==='create_company';
@@ -14,7 +15,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         if($action!=='create_company'){
             $s=$pdo->prepare('SELECT id FROM clients WHERE id=?');$s->execute([$id]);if(!$s->fetchColumn())throw new RuntimeException('Empresa no encontrada.');
         }
-        if($action==='create_company'){
+        if($action==='delete_company'){
+            if(($_POST['confirm_delete']??'')!=='1')throw new InvalidArgumentException('Confirma la eliminación del cliente.');
+            $deleted=delete_client_records($pdo,$id);
+            log_action('deleted','client',$id,['name'=>$deleted['name'],'rut'=>$deleted['rut']]);
+            $pdo->commit();flash('success','Cliente y contactos eliminados correctamente.');redirect('clients.php');
+        }elseif($action==='create_company'){
             $id=create_client($pdo,$_POST);
         }elseif($action==='company'){
             $name=trim((string)($_POST['name']??''));$address=trim((string)($_POST['address']??''));
@@ -53,6 +59,7 @@ else{$s=db()->prepare('SELECT id,name,rut,address FROM clients WHERE name LIKE ?
 <div class="actions"><a class="btn btn-primary" href="clients.php?new=1">Nuevo cliente</a></div>
 <section class="panel"><div class="panel-head"><h2>Empresas y contactos</h2></div><div class="panel-body"><form method="get" class="filters"><div class="field"><label for="search">Nombre o RUT</label><input id="search" class="input" name="q" value="<?=e($search)?>"></div><button class="btn btn-dark">Buscar</button></form></div><div class="table-wrap"><table class="table"><thead><tr><th>Empresa</th><th>RUT</th><th>Dirección</th><th></th></tr></thead><tbody><?php foreach($clients as $c):?><tr><td><?=e($c['name'])?></td><td><?=e($c['rut'])?></td><td><?=e($c['address'])?></td><td><a href="clients.php?id=<?=$c['id']?>">Ver ficha y contactos</a></td></tr><?php endforeach;?></tbody></table></div><?php if(!$clients):?><p class="empty">No hay empresas con esta búsqueda.</p><?php endif;?></section>
 <?php else:?>
+<div class="actions"><a class="btn btn-danger" href="client_delete.php?id=<?=$id?>">Eliminar cliente</a></div>
 <div class="actions"><a class="btn btn-outline" href="clients.php">Volver a clientes</a><a class="btn btn-outline" href="index.php?page=quotes&q=<?=rawurlencode($client['rut'])?>">Ver cotizaciones</a></div>
 <section class="panel"><div class="panel-head"><h2><?=e($client['name'])?> · <?=e($client['rut'])?></h2></div><div class="panel-body"><form method="post"><input type="hidden" name="client_id" value="<?=$id?>"><input type="hidden" name="action" value="company"><?=csrf_field()?><div class="form-grid"><div class="field"><label for="company-name">Razón social</label><input class="input" id="company-name" name="name" value="<?=e($client['name'])?>" maxlength="180" required></div><div class="field"><label for="company-address">Dirección</label><input class="input" id="company-address" name="address" value="<?=e($client['address'])?>" maxlength="255" required></div></div><div class="actions"><button class="btn btn-primary">Guardar empresa</button></div></form></div></section>
 <section class="panel"><div class="panel-head"><h2>Contactos de la empresa</h2></div><div class="panel-body">

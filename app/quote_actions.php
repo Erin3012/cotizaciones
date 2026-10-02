@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/contacts.php';
+require_once __DIR__.'/deletions.php';
 
 function quote_expiry(string $issue, bool $custom, string $expiry=''): string
 {
@@ -96,8 +97,8 @@ function handle_delete_quote(): never
 {
     verify_csrf(); $id=(int)($_POST['quote_id']??0); if($id<=0) exit('Cotización no encontrada.'); $pdo=db(); $pdo->beginTransaction();
     try {
-        $s=$pdo->prepare('SELECT quote_number,total FROM quotes WHERE id=?'); $s->execute([$id]); $quote=$s->fetch(); if(!$quote) exit('Cotización no encontrada.');
+        $quote=delete_quote_record($pdo,$id);
         log_action('deleted','quote',$id,['quote_number'=>$quote['quote_number'],'total'=>$quote['total']]);
-        $pdo->prepare('DELETE FROM quotes WHERE id=?')->execute([$id]); $pdo->commit(); flash('success','Cotización eliminada correctamente.'); redirect('index.php?page=quotes');
-    } catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack(); exit('No se pudo eliminar la cotización: '.e($e->getMessage()));}
+        $pdo->commit(); flash('success','Cotización eliminada correctamente.'); redirect('index.php?page=quotes');
+    } catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();flash('error',$e instanceof InvalidArgumentException?$e->getMessage():'No se pudo eliminar la cotización. Intenta nuevamente.');redirect('index.php?page=quotes');}
 }
