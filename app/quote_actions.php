@@ -1,6 +1,16 @@
 <?php
 declare(strict_types=1);
 
+function quote_expiry(string $issue, bool $custom, string $expiry=''): string
+{
+    $date=DateTimeImmutable::createFromFormat('!Y-m-d',$issue);
+    if(!$date || $date->format('Y-m-d')!==$issue) throw new InvalidArgumentException('Fecha de emisión inválida.');
+    if(!$custom) return $date->modify('+7 days')->format('Y-m-d');
+    $end=DateTimeImmutable::createFromFormat('!Y-m-d',$expiry);
+    if(!$end || $end->format('Y-m-d')!==$expiry || $end<$date) throw new InvalidArgumentException('Fecha de vencimiento inválida.');
+    return $expiry;
+}
+
 function handle_save_quote_form(): never
 {
     verify_csrf();
@@ -25,7 +35,7 @@ function handle_save_quote_form(): never
         }
         $issue=(string)($_POST['issue_date']??date('Y-m-d'));$expiry=(string)($_POST['expiry_date']??'');$number=trim((string)($_POST['quote_number']??''));
         if($number==='')$number=next_number('COT','quotes','quote_number');
-        if(!$expiry||$expiry<$issue)exit('La fecha de vencimiento es obligatoria y válida.');
+        $expiry=quote_expiry($issue,($_POST['custom_expiry']??'')==='1',$expiry);
         if(!preg_match('/^[A-Za-z0-9][A-Za-z0-9 ._-]{2,29}$/',$number))exit('El folio contiene caracteres no permitidos.');
         $items=[];foreach((array)($_POST['description']??[]) as $i=>$description){$description=trim((string)$description);if($description==='')continue;$item=['description'=>$description,'quantity'=>(float)($_POST['quantity'][$i]??0),'unit'=>trim((string)($_POST['unit'][$i]??'c/u')),'unit_price'=>(float)($_POST['unit_price'][$i]??0),'discount_percent'=>(float)($_POST['discount_percent'][$i]??0)];if($item['quantity']<=0||$item['unit_price']<0||$item['discount_percent']<0||$item['discount_percent']>100)exit('Revisa cantidades, precios y descuentos.');$items[]=$item;}
         if(!$items)exit('Agrega al menos un ítem.');$totals=calculate_totals($items,19);
@@ -57,7 +67,9 @@ function handle_update_quote_form(): never
     $issue=(string)($_POST['issue_date']??date('Y-m-d'));
     $expiry=(string)($_POST['expiry_date']??'');
     $number=trim((string)($_POST['quote_number']??''));
-    if($id<=0||!$expiry||$expiry<$issue) exit('La fecha de vencimiento es obligatoria y válida.');
+    try { $expiry=quote_expiry($issue,($_POST['custom_expiry']??'')==='1',$expiry); }
+    catch(InvalidArgumentException $e){http_response_code(422);exit(e($e->getMessage()));}
+    if($id<=0) exit('Cotización no encontrada.');
     if(!preg_match('/^[A-Za-z0-9][A-Za-z0-9 ._-]{2,29}$/',$number)) exit('El folio contiene caracteres no permitidos.');
     $items=quote_form_items(); $totals=calculate_totals($items,19); $pdo=db(); $pdo->beginTransaction();
     try {
