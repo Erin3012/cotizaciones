@@ -43,7 +43,7 @@ function consume_flash(): array { $items=$_SESSION['flash']??[]; unset($_SESSION
 function app_url(string $path=''): string { return rtrim(env_value('APP_URL',''),'/').'/'.ltrim($path,'/'); }
 function current_user(): ?array {
     static $user; if ($user!==null) return $user; if (empty($_SESSION['user_id'])) return null;
-    $stmt=db()->prepare('SELECT id,name,email,role FROM users WHERE id=? AND active=1'); $stmt->execute([(int)$_SESSION['user_id']]); return $user=$stmt->fetch()?:null;
+    $stmt=db()->prepare('SELECT id,name,email,role FROM users WHERE id=? AND active=1'); $stmt->execute([(int)$_SESSION['user_id']]); $user=$stmt->fetch()?:null; if($user&&isset($_SESSION['portal_role']))$user['role']=(string)$_SESSION['portal_role']; return $user;
 }
 function require_login(): array { $user=current_user(); if (!$user) redirect('login.php?return='.rawurlencode($_SERVER['REQUEST_URI']??'index.php?page=quotes')); return $user; }
 function login_user(array $user): void { session_regenerate_id(true); $_SESSION['user_id']=(int)$user['id']; }

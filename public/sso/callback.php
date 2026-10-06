@@ -7,5 +7,5 @@ if ($expected === '' || $state === '' || !hash_equals($expected, $state) || !pre
 try {
     $identity = sso_exchange($code, 'quotations'); $stmt = db()->prepare('SELECT * FROM users WHERE email=? AND active=1 LIMIT 1'); $stmt->execute([strtolower(trim((string)$identity['email']))]); $local = $stmt->fetch();
     if (!$local) redirect('error.php?code=unlinked');
-    login_user($local); redirect('../index.php?page=quotes');
+    login_user($local); $_SESSION['portal_role'] = (string)($identity['role'] ?? 'user'); redirect('../index.php?page=quotes');
 } catch (Throwable $e) { error_log($e->getMessage()); redirect('error.php?code=invalid'); }
