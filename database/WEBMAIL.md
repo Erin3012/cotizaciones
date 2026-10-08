@@ -1,42 +1,29 @@
-# Códigos y borradores en webmail
-
-## Actualización
-
-1. Respaldar la base `qlccl_cotizaciones` y comprobar que el respaldo es recuperable.
-2. Importar `migration_numbering_mail.sql` antes de utilizar el nuevo formulario. La migración es reejecutable: nunca disminuye los contadores. El año del código es el año de guardado en Chile, no la fecha de emisión. Los folios históricos no cambian.
-3. Actualizar el código con `git pull --ff-only origin main`, preservando `.env`, archivos y cambios locales. Si `composer.lock` del servidor es anterior y no está versionado, moverlo a una carpeta privada de respaldo antes de actualizar; no borrarlo.
-4. Ejecutar `php /home/qlccl/composer.phar install --no-dev --optimize-autoloader`. No ejecutar `composer update` en producción. Composer ya no carga automáticamente `bootstrap.php`, evitando su redeclaración durante PDF.
-5. Comprobar `dom`, `mbstring`, `gd`, `openssl` e `imap` tanto en CLI como en el PHP del subdominio. `storage/pdf` se crea fuera de `public`, con permisos restringidos. No configurar el document root por encima de `public`.
-
-## Configuración privada del buzón
-
-Agregar al `.env` existente (no reemplazar el archivo ni alterar sus credenciales de base de datos):
-
-```dotenv
-QUOTE_MAIL_ENABLED=0
-QUOTE_IMAP_HOST=mail.metalrubber.cl
-QUOTE_IMAP_PORT=993
-QUOTE_IMAP_DRAFTS=INBOX.Drafts
-QUOTE_IMAP_SENT=INBOX.Sent
-QUOTE_IMAP_PASSWORD="configurar-privadamente"
-```
-
-El host y las carpetas son valores iniciales: confirmar los datos IMAP en cPanel → Cuentas de correo → Connect Devices / Configurar cliente de correo y la carpeta especial de Borradores y Enviados de Roundcube. Se exige TLS con certificado válido; no desactivar su verificación. El remitente/usuario es siempre `carlos.pedreros@metalrubber.cl`. No se necesitan credenciales SMTP porque el sistema no envía correos.
-
-Configurar la contraseña por SSH o el editor privado de cPanel. No pegarla en el chat, argumentos de shell, repositorio ni registros. Conservar `chmod 600 .env` y verificar el acceso del PHP web. Activar `QUOTE_MAIL_ENABLED=1` solamente cuando estén verificadas las extensiones, las carpetas y la conexión al buzón. No crear borradores ni enviar mensajes de prueba a destinatarios reales sin autorización.
+# Redacción directa en webmail
 
 ## Uso
 
-Abrir una cotización guardada → **Preparar correo en webmail** → revisar destinatario, asunto y mensaje → **Preparar borrador con PDF**. Abrir `https://metalrubber.cl:2096`, iniciar sesión en la cuenta compartida y revisar el mensaje en Borradores. El envío final se realiza allí.
+Cotización guardada → **Redactar en webmail**.
 
-Los dobles clics y reintentos del mismo documento/mensaje reutilizan la operación registrada. Para un contenido nuevo, confirmar la creación de otro borrador; el anterior se conserva. Si no puede determinarse el resultado de un APPEND, se bloquea otro intento ciego: revisar Borradores/Enviados y solicitar revisión técnica del `message_id` registrado. No borrar manualmente el registro para forzar un reintento.
+1. Descargar el PDF desde esa pantalla.
+2. Revisar destinatario, asunto y mensaje.
+3. Iniciar sesión en webmail con `carlos.pedreros@metalrubber.cl` si hace falta.
+4. Pulsar **Abrir redacción en webmail**: abre otra pestaña de Roundcube con los campos preparados.
+5. Adjuntar el PDF descargado, revisar y enviar manualmente.
 
-Un borrador no es evidencia de envío: no se cambian estados de cotización ni se muestra «correo enviado». Descargar PDF e imprimir siguen disponibles sin configuración de correo.
+El módulo no crea borradores, no envía correos y no registra un envío supuesto. Roundcube puede autoguardar mientras se redacta, según su configuración propia. No se modifican las preferencias del buzón.
 
-## Pruebas
+El enlace permanente usa `https://metalrubber.cl:2096/3rdparty/roundcube/`, nunca enlaces temporales `cpsess`. La pantalla conserva los campos editables y ofrece copiar cada uno. Si el inicio de sesión de cPanel no conserva los parámetros, volver a abrir la redacción después de iniciar sesión, o usar los botones de copia. Los mensajes cuyo enlace supera 2.000 bytes requieren copia manual para evitar rechazos del proxy. El contenido enviado por enlace puede quedar en el historial del navegador/webmail: no incluir contraseñas ni secretos en el mensaje.
 
-- `php tests/numbering.php` (PDO SQLite).
-- `php tests/document_mail.php --render` genera documentos sintéticos en `tmp/pdfs`, sin insertar clientes ni enviar mensajes.
-- `php tests/draft_retry.php` usa un buzón simulado para comprobar desconexiones e idempotencia.
-- Validar concurrencia real en MySQL y PDF en PHP 8.1 antes de habilitar la función.
-- `php tests/mysql_concurrency.php --run` reserva y limpia exclusivamente un contador de prueba del año 9998; no crea clientes ni cotizaciones.
+Roundcube no ofrece adjuntos automáticos a través de su enlace estándar de redacción. No se afirma que el PDF está adjunto: el administrador lo agrega manualmente. Referencia: [código oficial de redacción de Roundcube](https://github.com/roundcube/roundcubemail/blob/master/program/actions/mail/compose.php).
+
+## Despliegue
+
+Para esta actualización basta `git pull --ff-only origin main`. No requiere nuevas tablas, extensiones IMAP, credenciales ni cambios al `.env`. Se conservan los registros históricos de borradores, pero su creación nativa queda deshabilitada aunque `QUOTE_MAIL_ENABLED=1` esté configurado. No se borran mensajes existentes.
+
+Si se instala desde una versión anterior a los códigos atómicos: respaldar primero `qlccl_cotizaciones`, importar `migration_numbering_mail.sql` y ejecutar `php /home/qlccl/composer.phar install --no-dev --optimize-autoloader`. Los contadores nunca se disminuyen y los folios históricos se conservan. Mantener `.env` privado (`chmod 600`), fuera de Git y de `public`.
+
+## Verificación
+
+- `php tests/webmail_compose.php`: parámetros, acentos, HTML seguro, URL larga, CSRF/autenticación y bloqueo del buzón nativo. No abre conexiones ni crea mensajes.
+- Mantener pruebas de cálculos, clientes, contactos, eliminación, numeración y PDF. Las pruebas heredadas de borradores usan un buzón simulado, no el real.
+- Probar la pantalla con la sesión real de Roundcube; el comportamiento después del login depende de cPanel. No enviar correos a clientes reales para probar.

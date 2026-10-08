@@ -6,7 +6,20 @@ const QUOTE_MAIL_SENDER='carlos.pedreros@metalrubber.cl';
 const QUOTE_WEBMAIL_URL='https://metalrubber.cl:2096';
 
 function quote_mail_configured(): bool {
-    return env_value('QUOTE_MAIL_ENABLED')==='1'&&env_value('QUOTE_IMAP_PASSWORD')!==''&&env_value('QUOTE_IMAP_HOST')!==''&&env_value('QUOTE_IMAP_DRAFTS')!==''&&env_value('QUOTE_IMAP_SENT')!==''&&extension_loaded('imap');
+    // This module no longer writes messages to the mailbox.
+    return false;
+}
+
+function quote_webmail_compose_url(array $input): string {
+    $mail=quote_mail_input($input);
+    // Roundcube treats '<' as HTML: escape text before adding line breaks.
+    $body='<p>'.nl2br(htmlspecialchars($mail['body'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),false).'</p>';
+    $url=QUOTE_WEBMAIL_URL.'/3rdparty/roundcube/?'.http_build_query([
+        '_task'=>'mail','_action'=>'compose','_to'=>$mail['to'],
+        '_subject'=>$mail['subject'],'_body'=>$body,
+    ],'', '&',PHP_QUERY_RFC3986);
+    if(strlen($url)>2000)throw new LengthException('El mensaje es demasiado largo para abrirlo mediante un enlace. Abre webmail y copia los campos con los botones de abajo.');
+    return $url;
 }
 
 function quote_mail_input(array $data): array {
@@ -50,9 +63,7 @@ interface QuoteDraftMailbox {
 final class NativeQuoteDraftMailbox implements QuoteDraftMailbox {
     private $connection;
     public function __construct(){
-        imap_timeout(IMAP_OPENTIMEOUT,15);imap_timeout(IMAP_READTIMEOUT,20);imap_timeout(IMAP_WRITETIMEOUT,20);
-        $this->connection=@imap_open(imap_quote_endpoint(env_value('QUOTE_IMAP_DRAFTS')),QUOTE_MAIL_SENDER,env_value('QUOTE_IMAP_PASSWORD'),0,1,['DISABLE_AUTHENTICATOR'=>'GSSAPI']);
-        if(!$this->connection){imap_errors();imap_alerts();throw new RuntimeException('No se pudo conectar al buzón. Revisa configuración y credenciales en el servidor.');}
+        throw new RuntimeException('La creación de borradores está deshabilitada. Abre la redacción en webmail.');
     }
     public function find(string $messageId,bool $sent=false):array{
         $box=env_value($sent?'QUOTE_IMAP_SENT':'QUOTE_IMAP_DRAFTS');

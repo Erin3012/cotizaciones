@@ -21,7 +21,7 @@ Sistema independiente de solicitudes y cotizaciones para Metalrubber Ltda.
 
 ## Flujo
 
-- Para actualizar folios atómicos, generación PDF y borradores con adjuntos, seguir [database/WEBMAIL.md](database/WEBMAIL.md). Requiere migración y `composer install`; el correo permanece deshabilitado hasta configurar el buzón privado.
+- Para actualizar folios atómicos, PDF y redacción directa en webmail, seguir [database/WEBMAIL.md](database/WEBMAIL.md). El módulo no crea borradores ni envía mensajes; el PDF se adjunta manualmente.
 - Para eliminar una cotización, abrir su detalle → **Eliminar** y confirmar. Para eliminar un cliente, abrir su ficha → **Eliminar cliente**. El servidor exige eliminar previamente todas sus cotizaciones, una por una; después elimina empresa, contactos y solicitudes internas vacías, conservando la auditoría. Si quedan solicitudes con adjuntos, se bloquea el borrado para proteger los respaldos. La eliminación definitiva no se puede deshacer: respaldar la base antes de usarla.
 - Desde **Clientes → Nuevo cliente** se registra una empresa con RUT, nombre o razón social y dirección, sin crear una cotización. Al guardar se abre su ficha para agregar contactos por persona y área. Los RUT duplicados se rechazan sin sobrescribir datos. Esta opción no necesita una migración adicional a la de múltiples contactos.
 - El panel administrativo requiere autenticación y permite crear directamente cotizaciones para los clientes.
