@@ -19,6 +19,13 @@ $mime=quote_draft_mime($q,$mail,'<prueba-sin-envio@metalrubber.cl>',$pdf);
 assert_document(str_contains($mime,'carlos.pedreros@metalrubber.cl'),'Remitente incorrecto.');
 assert_document(str_contains($mime,'application/pdf')&&str_contains($mime,'PRUEBA-2026-0001.pdf'),'Adjunto faltante.');
 assert_document(str_contains($mime,base64_encode(substr($pdf,0,30))),'Contenido PDF no adjunto.');
+$eml=quote_outlook_eml($q,$mail,$pdf);
+assert_document(str_contains($eml,'X-Unsent: 1'),'Archivo editable solicitado.');
+assert_document(str_contains($eml,'multipart/alternative')&&str_contains($eml,'text/html'),'Alternativas HTML y texto.');
+assert_document(str_contains($eml,'application/pdf')&&str_contains($eml,'PRUEBA-2026-0001.pdf'),'PDF incluido en EML.');
+assert_document(str_contains(str_replace(["\r","\n"],'',$eml),base64_encode($pdf)),'PDF adjunto conserva bytes completos.');
+assert_document(str_contains($eml,'carlos.pedreros@metalrubber.cl'),'EML conserva remitente.');
+try{quote_outlook_eml($q,$mail,'archivo inválido');throw new RuntimeException('Aceptó PDF inválido');}catch(InvalidArgumentException $e){}
 if(in_array('--render',$argv,true)){
     $dir=dirname(__DIR__).'/tmp/pdfs';if(!is_dir($dir))mkdir($dir,0700,true);
     file_put_contents($dir.'/quote-single.pdf',$pdf);

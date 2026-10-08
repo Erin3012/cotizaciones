@@ -71,6 +71,27 @@ function imap_quote_endpoint(string $folder): string {
     return '{'.$host.':'.$port.'/imap/ssl/validate-cert}'.$folder;
 }
 
+function quote_outlook_eml(array $q,array $input,string $pdf): string {
+    $mail=quote_mail_input($input);
+    if(!str_starts_with($pdf,'%PDF-'))throw new InvalidArgumentException('El PDF adjunto no es válido.');
+    require_once dirname(__DIR__).'/vendor/autoload.php';
+    $message=new PHPMailer\PHPMailer\PHPMailer(true);
+    $message->CharSet='UTF-8';
+    $message->setFrom(QUOTE_MAIL_SENDER,'Metalrubber Ltda.');
+    $message->addAddress($mail['to']);
+    $message->Subject=$mail['subject'];
+    // HTML plus plain alternative improves compatibility; never treat input as HTML.
+    $message->isHTML(true);
+    $message->Body='<html><body><p>'.nl2br(htmlspecialchars($mail['body'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),false).'</p></body></html>';
+    $message->AltBody=$mail['body'];
+    $message->MessageID='<cotizacion-'.bin2hex(random_bytes(20)).'@metalrubber.cl>';
+    $message->addCustomHeader('X-Unsent','1');
+    $message->addStringAttachment($pdf,quote_pdf_filename($q['quote_number']),'base64','application/pdf');
+    // Generate a local file only: no SMTP/IMAP and no send/postSend calls.
+    $message->preSend();
+    return $message->getSentMIMEMessage();
+}
+
 interface QuoteDraftMailbox {
     public function find(string $messageId,bool $sent=false): array;
     public function append(string $mime): bool;

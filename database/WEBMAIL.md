@@ -31,6 +31,10 @@ Si se instala desde una versión anterior a los códigos atómicos: respaldar pr
 
 ## Verificación
 
+### Archivo para el nuevo Outlook
+
+**Descargar correo con PDF (.eml)** genera el mensaje MIME en memoria con HTML, alternativa de texto y PDF íntegro, y lo descarga al equipo. No utiliza IMAP/SMTP ni guarda el archivo de correo en el servidor o en Borradores. Abrir el archivo en Outlook y revisar remitente, contenido y adjunto antes de enviar. `X-Unsent: 1` solicita apertura editable, pero la compatibilidad depende de la versión de Outlook: puede abrirlo para lectura o perder el PDF al editar. Conservar la descarga PDF manual. No considerar esta generación prueba de envío ni garantía de redacción correcta en el cliente. `tests/document_mail.php` verifica los bytes del PDF incluido, no el comportamiento de Outlook instalado.
+
 - `php tests/webmail_compose.php`: parámetros, acentos, HTML seguro, URL larga, CSRF/autenticación y bloqueo del buzón nativo. No abre conexiones ni crea mensajes.
 - Mantener pruebas de cálculos, clientes, contactos, eliminación, numeración y PDF. Las pruebas heredadas de borradores usan un buzón simulado, no el real.
 - Probar la pantalla con la sesión real de Roundcube; el comportamiento después del login depende de cPanel. No enviar correos a clientes reales para probar.

@@ -44,6 +44,19 @@ async function run() {
     await form.handlers.submit({preventDefault() {}});
     assert.equal(popup.closed, true);
     assert.equal(fields['copy-status'].textContent, 'Datos inválidos');
+    let downloaded = false;
+    document.body = {appendChild() {}};
+    document.createElement = () => ({click() {downloaded = true;}, remove() {}});
+    context.URL.createObjectURL = () => 'blob:prueba';
+    context.URL.revokeObjectURL = () => {};
+    context.setTimeout = fn => fn();
+    context.fetch = async () => ({ok: true, headers: {get: name => name === 'content-type' ? 'message/rfc822' : 'attachment; filename="PRUEBA.eml"'}, blob: async () => ({})});
+    context.window.open = () => {throw new Error('La descarga EML no debe abrir una ventana');};
+    const emlButton = {value: 'eml'};
+    await form.handlers.submit({preventDefault() {}, submitter: emlButton});
+    assert(downloaded, 'Archivo EML se descarga sin navegar');
+    assert.equal(emlButton.disabled, false);
+    assert(fields['copy-status'].textContent.includes('PDF incluido'));
     console.log('OK: Outlook, validación, popup, bloqueo y errores (sin abrir ventanas reales).');
 }
 run().catch(error => {console.error(error); process.exitCode = 1;});

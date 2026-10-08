@@ -7,6 +7,40 @@ if (mailForm && outlookLink) {
         const status = document.getElementById('copy-status');
         const fallback = document.getElementById('mail-popup-fallback');
         fallback.textContent = 'Abrir webmail en otra pestaña';
+        if (event.submitter?.value === 'eml') {
+            const emlButton = event.submitter;
+            emlButton.disabled = true;
+            try {
+                const data = new FormData(mailForm);
+                data.set('mode', 'eml');
+                data.set('response', 'json');
+                const response = await fetch(mailForm.action, {method: 'POST', body: data, credentials: 'same-origin'});
+                const contentType = response.headers.get('content-type') || '';
+                if (!response.ok || !contentType.includes('message/rfc822')) {
+                    if (contentType.includes('application/json')) {
+                        const result = await response.json();
+                        throw new Error(result.error || 'No se pudo descargar el correo.');
+                    }
+                    throw new Error('No se pudo descargar el correo. Recarga la sesión o usa la descarga PDF.');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const disposition = response.headers.get('content-disposition') || '';
+                link.download = disposition.match(/filename="([A-Za-z0-9_.-]+)"/)?.[1] || 'cotizacion.eml';
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+                status.textContent = 'Correo .eml descargado con el PDF incluido. Ábrelo en Outlook y confirma que conserva el adjunto antes de enviar.';
+            } catch (error) {
+                status.textContent = error.message || 'No se pudo descargar el correo. Usa la descarga PDF.';
+            } finally {
+                emlButton.disabled = false;
+            }
+            return;
+        }
         // Open during the user's click, before the asynchronous validation.
         const popup = window.open('about:blank', '_blank', 'popup,width=1050,height=780,resizable=yes,scrollbars=yes');
         if (popup) popup.opener = null;
