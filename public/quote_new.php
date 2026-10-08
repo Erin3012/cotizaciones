@@ -4,7 +4,6 @@ require_once dirname(__DIR__).'/app/bootstrap.php';
 require_once dirname(__DIR__).'/app/quote_actions.php';
 require_login();
 ?><script src="assets/client-lookup.js" defer></script><?php
-$next=next_number('COT','quotes','quote_number');
 ?><!doctype html>
 <html lang="es">
 <head>
@@ -30,7 +29,7 @@ $next=next_number('COT','quotes','quote_number');
 <div class="field"><label>Atención / contacto *</label><input class="input" name="attention_name" required></div>
 </div></div></section>
 <section class="panel"><div class="panel-head"><h2>Datos de la cotización</h2></div><div class="panel-body"><div class="form-grid">
-<div class="field"><label>Folio / código</label><input class="input" name="quote_number" value="<?=e($next)?>" required><small>Editable para conservar folios como 27-261370909.</small></div>
+<div class="field"><label>Folio / código</label><p>El código se asignará al guardar.</p><small>Automático y único, incluso si varios usuarios guardan a la vez.</small></div>
 <div class="field"><label>Fecha de emisión</label><input class="input" type="date" name="issue_date" value="<?=date('Y-m-d')?>" required></div>
 <div class="field"><label>Fecha de vencimiento *</label><input class="input" type="date" name="expiry_date" required></div>
 </div></div></section>

@@ -4,4 +4,8 @@
 !/public/uploads/.htaccess
 .DS_Store
 *.log
+error_log
+/storage/
+/tmp/
+/output/
 

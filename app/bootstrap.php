@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+date_default_timezone_set('America/Santiago');
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_cookie_params(['httponly'=>true,'secure'=>(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),'samesite'=>'Lax']);
@@ -58,7 +59,8 @@ function valid_rut(string $rut): bool {
     for ($i=strlen($body)-1;$i>=0;$i--) {$sum+=(int)$body[$i]*$mult;$mult=$mult===7?2:$mult+1;} $calc=11-($sum%11); $expected=$calc===11?'0':($calc===10?'K':(string)$calc); return $dv===$expected;
 }
 function next_number(string $prefix,string $table,string $column): string {
-    $year=date('Y'); $like=$prefix.'-'.$year.'-%'; $stmt=db()->prepare("SELECT MAX(CAST(SUBSTRING_INDEX($column, '-', -1) AS UNSIGNED)) FROM $table WHERE $column LIKE ?"); $stmt->execute([$like]); return sprintf('%s-%s-%04d',$prefix,$year,((int)$stmt->fetchColumn())+1);
+    require_once __DIR__.'/numbering.php';
+    return allocate_number(db(),$prefix);
 }
 function log_action(string $action,string $entity,?int $entityId,array $payload=[]): void { $u=current_user(); $s=db()->prepare('INSERT INTO audit_logs (action,entity_type,entity_id,user_id,payload_json) VALUES (?,?,?,?,?)'); $s->execute([$action,$entity,$entityId,$u['id']??null,$payload?json_encode($payload,JSON_UNESCAPED_UNICODE):null]); }
 function add_history(string $type,int $id,?string $from,string $to,?string $comment=null): void { $u=current_user(); $s=db()->prepare('INSERT INTO workflow_history (entity_type,entity_id,from_status,to_status,comment,user_id) VALUES (?,?,?,?,?,?)'); $s->execute([$type,$id,$from,$to,$comment,$u['id']??null]); }
