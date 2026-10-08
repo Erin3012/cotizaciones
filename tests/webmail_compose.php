@@ -31,3 +31,6 @@ check_compose($outlookParams['body']===str_replace("\n","\r\n",$input['body']),'
 check_compose(!isset($outlookParams['attachment']),'No promete adjuntar automáticamente');
 try{quote_outlook_compose_url(array_replace($input,['body'=>str_repeat('Texto ',700)]));throw new RuntimeException('No limita mailto');}catch(LengthException $e){}
 echo "Outlook compose OK (sin abrir ni enviar correos)\n";
+check_compose(parse_url(quote_outlook_web_url($input,'personal'),PHP_URL_HOST)==='outlook.live.com','Outlook personal');
+check_compose(parse_url(quote_outlook_web_url($input,'business'),PHP_URL_HOST)==='outlook.office.com','Outlook Microsoft365');
+try{quote_outlook_web_url($input,'https://malicioso.invalid');throw new RuntimeException('Acepta host libre');}catch(InvalidArgumentException $e){}

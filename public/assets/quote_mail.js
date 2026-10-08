@@ -6,6 +6,7 @@ if (mailForm && outlookLink) {
         event.preventDefault();
         const status = document.getElementById('copy-status');
         const fallback = document.getElementById('mail-popup-fallback');
+        fallback.textContent = 'Abrir webmail en otra pestaña';
         // Open during the user's click, before the asynchronous validation.
         const popup = window.open('about:blank', '_blank', 'popup,width=1050,height=780,resizable=yes,scrollbars=yes');
         if (popup) popup.opener = null;
@@ -54,10 +55,35 @@ if (mailForm && outlookLink) {
             event.preventDefault();
             document.getElementById('copy-status').textContent = 'El mensaje es demasiado largo para un enlace. Abre Outlook y usa los botones Copiar.';
         } else {
-            document.getElementById('copy-status').textContent = 'Se solicitó abrir tu aplicación de correo. Adjunta el PDF y verifica el remitente. No se ha enviado ningún mensaje.';
+            document.getElementById('copy-status').textContent = 'Se solicitó abrir Outlook instalado. Si no aparece, prueba Abrir Outlook en el navegador abajo o revisa su instalación y asociación MAILTO. No se ha enviado ningún mensaje.';
         }
     });
 }
+const outlookWebButton = document.getElementById('outlook-web-compose');
+if (mailForm && outlookWebButton) outlookWebButton.addEventListener('click', () => {
+    const status = document.getElementById('copy-status');
+    if (!mailForm.reportValidity() || /[\r\n]/.test(document.getElementById('subject').value)) {
+        status.textContent = 'Revisa destinatario, asunto y mensaje antes de abrir Outlook.';
+        return;
+    }
+    const account = document.getElementById('outlook-account').value;
+    const host = account === 'personal' ? 'outlook.live.com' : 'outlook.office.com';
+    const params = new URLSearchParams({to: document.getElementById('to').value.trim(), subject: document.getElementById('subject').value.trim(), body: document.getElementById('body').value.trim()});
+    const url = 'https://' + host + '/mail/deeplink/compose?' + params.toString();
+    if (url.length > 2000) { status.textContent = 'El mensaje es demasiado largo para un enlace. Abre Outlook y copia los campos manualmente.'; return; }
+    const popup = window.open(url, '_blank', 'popup,width=1050,height=780,resizable=yes,scrollbars=yes');
+    const fallback = document.getElementById('mail-popup-fallback');
+    fallback.hidden = true;
+    if (popup) {
+        popup.opener = null;
+        status.textContent = 'Se abrió Outlook web. Revisa la cuenta remitente y adjunta el PDF; si el login pierde los campos, vuelve a pulsar este botón.';
+    } else {
+        fallback.href = url;
+        fallback.textContent = 'Abrir Outlook web en otra pestaña';
+        fallback.hidden = false;
+        status.textContent = 'El navegador bloqueó la ventana. Usa el enlace alternativo, sin cerrar Metalrubber.';
+    }
+});
 document.querySelectorAll('[data-copy]').forEach(button => {
     button.addEventListener('click', async () => {
         const field = document.getElementById(button.dataset.copy);

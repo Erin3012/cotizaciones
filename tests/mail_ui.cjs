@@ -7,6 +7,7 @@ function field(value = '') {
 const fields = {
     to: field('prueba@example.invalid'), subject: field('Cotización — Metalrubber'), body: field('Hola\nCotización'),
     'copy-status': field(), 'mail-popup-fallback': field(), 'outlook-compose': field(),
+    'outlook-web-compose': field(), 'outlook-account': field('personal'),
 };
 let valid = true;
 const submit = field();
@@ -16,7 +17,7 @@ form.reportValidity = () => valid;
 form.querySelector = () => submit;
 let popup = null;
 const document = {getElementById: id => fields[id], querySelector: () => form, querySelectorAll: () => []};
-const context = {document, URL, navigator: {}, FormData: class {set() {}},
+const context = {document, URL, URLSearchParams, navigator: {}, FormData: class {set() {}},
     window: {open: () => popup}, fetch: async () => ({ok: true, headers: {get: () => 'application/json'}, json: async () => ({url: 'https://metalrubber.cl:2096/3rdparty/roundcube/?_action=compose'})})};
 vm.runInNewContext(fs.readFileSync('public/assets/quote_mail.js', 'utf8'), context);
 assert(fields['outlook-compose'].href.startsWith('mailto:'));
@@ -27,6 +28,9 @@ fields['outlook-compose'].handlers.click({preventDefault() {prevented = true;}})
 assert(prevented);
 valid = true;
 async function run() {
+    fields['outlook-web-compose'].handlers.click();
+    assert(fields['mail-popup-fallback'].href.startsWith('https://outlook.live.com/'));
+    assert.equal(fields['mail-popup-fallback'].hidden, false);
     await form.handlers.submit({preventDefault() {}});
     assert.equal(fields['mail-popup-fallback'].hidden, false, 'Popup bloqueado tiene alternativa');
     assert.equal(submit.disabled, false);

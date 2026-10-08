@@ -7,6 +7,8 @@ La opción ahora se llama **Correo: webmail / Outlook** y abre un diálogo flota
 
 **Abrir en Outlook** usa `mailto:` con destinatario, asunto y texto, sin adjunto automático. Outlook debe ser la aplicación predeterminada de correo y tener configurada la cuenta correcta; si no lo es, Windows abrirá otra aplicación. Verificar el remitente antes de enviar. [Configuración oficial de Microsoft](https://support.microsoft.com/en-us/outlook/make-outlook-the-default-program-for-email-contacts-and-calendar).
 
+El botón se distingue ahora como **Outlook instalado**. Si no responde, comprobar que la asociación MAILTO no apunte a una aplicación desinstalada. **Abrir Outlook en el navegador** ofrece cuentas personales (Outlook.com/Hotmail) y laborales (Microsoft 365), con alternativa si el navegador bloquea ventanas. Requiere una cuenta Microsoft y no conecta automáticamente el buzón de cPanel; para la cuenta corporativa de cPanel, conservar webmail o configurar esa cuenta en Outlook instalado. No se garantiza conservar campos al pasar por el login de Microsoft: volver a abrir o copiar manualmente.
+
 Webmail intenta abrir una ventana independiente, pero el navegador puede convertirla en pestaña o bloquearla. Si la bloquea, se ofrece un enlace alternativo. No se incrusta Roundcube ni Outlook en un iframe: sólo el formulario local de preparación se muestra en el diálogo.
 
 1. Descargar el PDF desde esa pantalla.
