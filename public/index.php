@@ -17,7 +17,8 @@ if(isset($_GET['page']) && $action!=='pdf'){
     register_shutdown_function(function() use ($quotePageId,$isQuotePage): void {
         $html=ob_get_clean();
         $needle='<a class="btn btn-primary" href="index.php?action=pdf&id='.$quotePageId.'">Descargar PDF</a>';
-        $extra='<a class="btn btn-outline" href="quote_print.php?id='.$quotePageId.'">Imprimir / Guardar PDF</a><a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a><a class="btn btn-outline" href="quote_mail.php?id='.$quotePageId.'">Redactar en webmail</a><a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
+        $mailButton='<form method="post" action="quote_mail.php" data-eml-download style="display:inline-flex;margin:0"><input type="hidden" name="quote_id" value="'.$quotePageId.'">'.csrf_field().'<button class="btn btn-outline" type="submit" title="Descargar correo .eml con PDF adjunto">Correo: webmail / Outlook</button></form><span data-eml-status role="status" aria-live="polite" hidden></span>';
+        $extra='<a class="btn btn-outline" href="quote_print.php?id='.$quotePageId.'">Imprimir / Guardar PDF</a><a class="btn btn-outline" href="quote_edit.php?id='.$quotePageId.'">Modificar</a>'.$mailButton.'<a class="btn btn-danger" href="quote_delete.php?id='.$quotePageId.'">Eliminar</a>';
         $html=preg_replace_callback('/(<td>)(-?\d+\.\d{3})(<\/td>)/',function(array $match): string { return $match[1].e(quantity($match[2])).$match[3]; },$html)??$html;
         $html=preg_replace_callback('/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/',function(array $match): string { return $match[3].'/'.$match[2].'/'.$match[1]; },$html)??$html;
         $html=preg_replace('/<a class="[^"]*" href="index\.php\?page=requests">.*?<\/a>/s','',$html)??$html;
@@ -28,11 +29,8 @@ if(isset($_GET['page']) && $action!=='pdf'){
         $html=str_replace('<th>Estado</th>','',$html);
         $html=preg_replace('/<td><span class="status [^"]+">.*?<\/span><\/td>/s','',$html)??$html;
         if($isQuotePage){
-            $extra=str_replace('href="quote_mail.php?id='.$quotePageId.'">Redactar en webmail','data-mail-dialog href="quote_mail.php?id='.$quotePageId.'">Correo: webmail / Outlook',$extra);
             $html=str_replace($needle,$needle.$extra,$html);
-            $html=str_replace('</head>','<link rel="stylesheet" href="assets/quote_mail_modal.css"></head>',$html);
-            $modal='<dialog class="mail-dialog" id="quote-mail-dialog" aria-labelledby="quote-mail-title"><header class="mail-dialog-header"><h2 id="quote-mail-title">Correo · webmail / Outlook</h2><button class="mail-dialog-close" type="button" data-close-mail autofocus>Cerrar</button></header><iframe id="quote-mail-frame" title="Preparar correo de la cotización"></iframe></dialog><script src="assets/quote_mail_modal.js" defer></script>';
-            $html=str_replace('</body>',$modal.'</body>',$html);
+            $html=str_replace('</body>','<script src="assets/quote_eml.js?v=20261008-1" defer></script></body>',$html);
         }
         echo $html;
     });

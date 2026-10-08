@@ -22,6 +22,8 @@ try{new NativeQuoteDraftMailbox();throw new RuntimeException('IMAP permitido');}
 $page=file_get_contents(dirname(__DIR__).'/public/quote_mail.php');
 check_compose(!str_contains($page,'prepare_quote_draft(')&&!str_contains($page,'quote_email_drafts'),'Pantalla no registra borradores');
 check_compose(str_contains($page,'verify_csrf()')&&str_contains($page,'require_login()'),'CSRF y autenticación');
+check_compose(!str_contains($page,'<form')&&!str_contains($page,'outlook-web-compose'),'Sin pantalla intermedia de correo');
+check_compose(str_contains($page,'quote_outlook_eml('),'Descarga EML directa');
 echo "Webmail compose OK (sin conexiones ni mensajes)\n";
 $outlook=quote_outlook_compose_url($input);
 check_compose(str_starts_with($outlook,'mailto:'),'Outlook usa aplicación de correo, no envía');

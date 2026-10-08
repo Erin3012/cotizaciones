@@ -1,40 +1,20 @@
-# Redacción directa en webmail
+# Descargar correo con cotización PDF
 
-## Uso
+En el detalle, **Correo: webmail / Outlook** descarga directamente `{folio}.eml`, sin diálogo ni pantalla de preparación. Usa destinatario del contacto, asunto y texto predeterminados de la cotización guardada, y adjunta su PDF. No se cierra la cotización. Si no hay correo válido en sus datos guardados, corregir el contacto/destinatario de esa cotización antes de descargar.
 
-Cotización guardada → **Redactar en webmail**.
-La opción ahora se llama **Correo: webmail / Outlook** y abre un diálogo flotante sin salir de la cotización. Al cerrarlo y reabrirlo se mantienen los campos mientras no se recargue la página. Escape o Cerrar regresan a la cotización; el navegador devuelve el foco al botón.
+Abrir el archivo descargado en Outlook y verificar remitente, texto y PDF antes de enviar. Algunas versiones del nuevo Outlook pueden abrirlo sólo para lectura o perder el adjunto al editar: se mantiene Descargar PDF como alternativa. No se garantiza la apertura automática de Outlook desde el navegador.
 
-**Abrir en Outlook** usa `mailto:` con destinatario, asunto y texto, sin adjunto automático. Outlook debe ser la aplicación predeterminada de correo y tener configurada la cuenta correcta; si no lo es, Windows abrirá otra aplicación. Verificar el remitente antes de enviar. [Configuración oficial de Microsoft](https://support.microsoft.com/en-us/outlook/make-outlook-the-default-program-for-email-contacts-and-calendar).
+El controlador requiere autenticación, POST y CSRF. El mensaje y el PDF se generan en memoria: no se crea un archivo de correo en el servidor, ni se utiliza IMAP/SMTP, ni se crean borradores en webmail. No se registra un envío supuesto. Los registros históricos de borradores se conservan. Sus credenciales antiguas no se utilizan ni se modifican.
 
-El botón se distingue ahora como **Outlook instalado**. Si no responde, comprobar que la asociación MAILTO no apunte a una aplicación desinstalada. **Abrir Outlook en el navegador** ofrece cuentas personales (Outlook.com/Hotmail) y laborales (Microsoft 365), con alternativa si el navegador bloquea ventanas. Requiere una cuenta Microsoft y no conecta automáticamente el buzón de cPanel; para la cuenta corporativa de cPanel, conservar webmail o configurar esa cuenta en Outlook instalado. No se garantiza conservar campos al pasar por el login de Microsoft: volver a abrir o copiar manualmente.
+## Actualización
 
-Webmail intenta abrir una ventana independiente, pero el navegador puede convertirla en pestaña o bloquearla. Si la bloquea, se ofrece un enlace alternativo. No se incrusta Roundcube ni Outlook en un iframe: sólo el formulario local de preparación se muestra en el diálogo.
+`git pull --ff-only origin main`. Esta simplificación no necesita migraciones, cambios de `.env` ni instalación de nuevas dependencias. Se retiran la pantalla de correo, la ventana flotante y sus scripts/estilos; las cotizaciones, clientes y PDFs no se borran.
 
-1. Descargar el PDF desde esa pantalla.
-2. Revisar destinatario, asunto y mensaje.
-3. Iniciar sesión en webmail con `carlos.pedreros@metalrubber.cl` si hace falta.
-4. Pulsar **Abrir redacción en webmail**: abre otra pestaña de Roundcube con los campos preparados.
-5. Adjuntar el PDF descargado, revisar y enviar manualmente.
+Para actualizar desde una versión anterior a los códigos atómicos: respaldar `qlccl_cotizaciones`, importar `migration_numbering_mail.sql` y ejecutar `php /home/qlccl/composer.phar install --no-dev --optimize-autoloader`. Mantener `.env` privado y fuera de `public`/Git.
 
-El módulo no crea borradores, no envía correos y no registra un envío supuesto. Roundcube puede autoguardar mientras se redacta, según su configuración propia. No se modifican las preferencias del buzón.
+## Pruebas
 
-El enlace permanente usa `https://metalrubber.cl:2096/3rdparty/roundcube/`, nunca enlaces temporales `cpsess`. La pantalla conserva los campos editables y ofrece copiar cada uno. Si el inicio de sesión de cPanel no conserva los parámetros, volver a abrir la redacción después de iniciar sesión, o usar los botones de copia. Los mensajes cuyo enlace supera 2.000 bytes requieren copia manual para evitar rechazos del proxy. El contenido enviado por enlace puede quedar en el historial del navegador/webmail: no incluir contraseñas ni secretos en el mensaje.
-
-Roundcube no ofrece adjuntos automáticos a través de su enlace estándar de redacción. No se afirma que el PDF está adjunto: el administrador lo agrega manualmente. Referencia: [código oficial de redacción de Roundcube](https://github.com/roundcube/roundcubemail/blob/master/program/actions/mail/compose.php).
-
-## Despliegue
-
-Para esta actualización basta `git pull --ff-only origin main`. No requiere nuevas tablas, extensiones IMAP, credenciales ni cambios al `.env`. Se conservan los registros históricos de borradores, pero su creación nativa queda deshabilitada aunque `QUOTE_MAIL_ENABLED=1` esté configurado. No se borran mensajes existentes.
-
-Si se instala desde una versión anterior a los códigos atómicos: respaldar primero `qlccl_cotizaciones`, importar `migration_numbering_mail.sql` y ejecutar `php /home/qlccl/composer.phar install --no-dev --optimize-autoloader`. Los contadores nunca se disminuyen y los folios históricos se conservan. Mantener `.env` privado (`chmod 600`), fuera de Git y de `public`.
-
-## Verificación
-
-### Archivo para el nuevo Outlook
-
-**Descargar correo con PDF (.eml)** genera el mensaje MIME en memoria con HTML, alternativa de texto y PDF íntegro, y lo descarga al equipo. No utiliza IMAP/SMTP ni guarda el archivo de correo en el servidor o en Borradores. Abrir el archivo en Outlook y revisar remitente, contenido y adjunto antes de enviar. `X-Unsent: 1` solicita apertura editable, pero la compatibilidad depende de la versión de Outlook: puede abrirlo para lectura o perder el PDF al editar. Conservar la descarga PDF manual. No considerar esta generación prueba de envío ni garantía de redacción correcta en el cliente. `tests/document_mail.php` verifica los bytes del PDF incluido, no el comportamiento de Outlook instalado.
-
-- `php tests/webmail_compose.php`: parámetros, acentos, HTML seguro, URL larga, CSRF/autenticación y bloqueo del buzón nativo. No abre conexiones ni crea mensajes.
-- Mantener pruebas de cálculos, clientes, contactos, eliminación, numeración y PDF. Las pruebas heredadas de borradores usan un buzón simulado, no el real.
-- Probar la pantalla con la sesión real de Roundcube; el comportamiento después del login depende de cPanel. No enviar correos a clientes reales para probar.
+- `php tests/document_mail.php`: PDF íntegro incluido en MIME, sin enviar ni crear mensajes.
+- `php tests/webmail_compose.php`: validaciones y controlador autenticado, sin formularios intermedios.
+- `node tests/eml_ui.cjs`: descarga directa con nombre de archivo, errores recuperables y ausencia de ventanas intermedias, con navegador simulado.
+- Mantener pruebas de cálculos, clientes, contactos, eliminación y numeración.
