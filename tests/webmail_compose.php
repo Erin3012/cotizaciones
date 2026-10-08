@@ -23,3 +23,11 @@ $page=file_get_contents(dirname(__DIR__).'/public/quote_mail.php');
 check_compose(!str_contains($page,'prepare_quote_draft(')&&!str_contains($page,'quote_email_drafts'),'Pantalla no registra borradores');
 check_compose(str_contains($page,'verify_csrf()')&&str_contains($page,'require_login()'),'CSRF y autenticación');
 echo "Webmail compose OK (sin conexiones ni mensajes)\n";
+$outlook=quote_outlook_compose_url($input);
+check_compose(str_starts_with($outlook,'mailto:'),'Outlook usa aplicación de correo, no envía');
+parse_str(substr($outlook,strpos($outlook,'?')+1),$outlookParams);
+check_compose($outlookParams['subject']===$input['subject'],'Asunto Outlook conserva acentos');
+check_compose($outlookParams['body']===str_replace("\n","\r\n",$input['body']),'Cuerpo Outlook de texto sin HTML');
+check_compose(!isset($outlookParams['attachment']),'No promete adjuntar automáticamente');
+try{quote_outlook_compose_url(array_replace($input,['body'=>str_repeat('Texto ',700)]));throw new RuntimeException('No limita mailto');}catch(LengthException $e){}
+echo "Outlook compose OK (sin abrir ni enviar correos)\n";

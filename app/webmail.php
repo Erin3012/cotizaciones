@@ -22,6 +22,15 @@ function quote_webmail_compose_url(array $input): string {
     return $url;
 }
 
+function quote_outlook_compose_url(array $input): string {
+    $mail=quote_mail_input($input);
+    $url='mailto:'.rawurlencode($mail['to']).'?'.http_build_query([
+        'subject'=>$mail['subject'],'body'=>str_replace("\n","\r\n",str_replace("\r\n","\n",$mail['body'])),
+    ],'', '&',PHP_QUERY_RFC3986);
+    if(strlen($url)>2000)throw new LengthException('El mensaje es demasiado largo para Outlook mediante un enlace. Copia los campos manualmente.');
+    return $url;
+}
+
 function quote_mail_input(array $data): array {
     $to=trim((string)($data['to']??''));$subject=trim((string)($data['subject']??''));$body=trim((string)($data['body']??''));
     if(strlen($to)>190||!filter_var($to,FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n]/',$to))throw new InvalidArgumentException('Ingresa un correo destinatario válido.');

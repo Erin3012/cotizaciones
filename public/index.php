@@ -27,7 +27,14 @@ if(isset($_GET['page']) && $action!=='pdf'){
         $html=preg_replace('/<div class="card metric[^>]*>.*?(?:Solicitudes nuevas|Cotizaciones pendientes|Cotizaciones enviadas|Cotizaciones aceptadas).*?<\/div>/s','',$html)??$html;
         $html=str_replace('<th>Estado</th>','',$html);
         $html=preg_replace('/<td><span class="status [^"]+">.*?<\/span><\/td>/s','',$html)??$html;
-        echo $isQuotePage?str_replace($needle,$needle.$extra,$html):$html;
+        if($isQuotePage){
+            $extra=str_replace('href="quote_mail.php?id='.$quotePageId.'">Redactar en webmail','data-mail-dialog href="quote_mail.php?id='.$quotePageId.'">Correo: webmail / Outlook',$extra);
+            $html=str_replace($needle,$needle.$extra,$html);
+            $html=str_replace('</head>','<link rel="stylesheet" href="assets/quote_mail_modal.css"></head>',$html);
+            $modal='<dialog class="mail-dialog" id="quote-mail-dialog" aria-labelledby="quote-mail-title"><header class="mail-dialog-header"><h2 id="quote-mail-title">Correo · webmail / Outlook</h2><button class="mail-dialog-close" type="button" data-close-mail autofocus>Cerrar</button></header><iframe id="quote-mail-frame" title="Preparar correo de la cotización"></iframe></dialog><script src="assets/quote_mail_modal.js" defer></script>';
+            $html=str_replace('</body>',$modal.'</body>',$html);
+        }
+        echo $html;
     });
 }
 

@@ -3,6 +3,11 @@
 ## Uso
 
 Cotización guardada → **Redactar en webmail**.
+La opción ahora se llama **Correo: webmail / Outlook** y abre un diálogo flotante sin salir de la cotización. Al cerrarlo y reabrirlo se mantienen los campos mientras no se recargue la página. Escape o Cerrar regresan a la cotización; el navegador devuelve el foco al botón.
+
+**Abrir en Outlook** usa `mailto:` con destinatario, asunto y texto, sin adjunto automático. Outlook debe ser la aplicación predeterminada de correo y tener configurada la cuenta correcta; si no lo es, Windows abrirá otra aplicación. Verificar el remitente antes de enviar. [Configuración oficial de Microsoft](https://support.microsoft.com/en-us/outlook/make-outlook-the-default-program-for-email-contacts-and-calendar).
+
+Webmail intenta abrir una ventana independiente, pero el navegador puede convertirla en pestaña o bloquearla. Si la bloquea, se ofrece un enlace alternativo. No se incrusta Roundcube ni Outlook en un iframe: sólo el formulario local de preparación se muestra en el diálogo.
 
 1. Descargar el PDF desde esa pantalla.
 2. Revisar destinatario, asunto y mensaje.
