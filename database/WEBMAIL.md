@@ -39,3 +39,4 @@ Un borrador no es evidencia de envío: no se cambian estados de cotización ni s
 - `php tests/document_mail.php --render` genera documentos sintéticos en `tmp/pdfs`, sin insertar clientes ni enviar mensajes.
 - `php tests/draft_retry.php` usa un buzón simulado para comprobar desconexiones e idempotencia.
 - Validar concurrencia real en MySQL y PDF en PHP 8.1 antes de habilitar la función.
+- `php tests/mysql_concurrency.php --run` reserva y limpia exclusivamente un contador de prueba del año 9998; no crea clientes ni cotizaciones.
